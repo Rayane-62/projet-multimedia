@@ -1,0 +1,5 @@
+python gen_test_frames.py -o sample_frames -n 12
+python run.py encode sample_frames -o video.bin --gop 8 --q 50
+python run.py decode video.bin -o decoded --ref sample_frames
+python run.py viz sample_frames video.bin -o pipeline.png
+python run.py sweep sample_frames -o experiments.png
