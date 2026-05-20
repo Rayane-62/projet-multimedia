@@ -1,3 +1,15 @@
+"""
+run.py  —  CLI pour le pipeline MPEG-4
+BENLALAM Mohamed Rayane  222231363816
+AKKOUCHE Mehdi           222231370206
+
+Usage :
+    python run.py encode  <frames_dir> -o video.bin [--gop 8] [--q 50]
+    python run.py decode  video.bin    -o decoded/  [--ref frames_dir]
+    python run.py viz     <frames_dir> video.bin    -o pipeline.png
+    python run.py sweep   <frames_dir>              -o experiments.png
+"""
+
 import argparse
 import os
 import sys

@@ -1,3 +1,10 @@
+"""
+viz.py  —  Visualisation du pipeline + courbes d'analyse
+Multimedia Systems - M1 IL G3 - USTHB 2025/2026
+BENLALAM Mohamed Rayane  222231363816
+AKKOUCHE Mehdi           222231370206
+"""
+
 import cv2
 import numpy as np
 import matplotlib
@@ -32,7 +39,7 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
 
     n_show = min(6, len(orig_frames))
 
-    #Ligne 1 : frames originales
+    # ── Ligne 1 : frames originales ─────────────────────────
     for i in range(n_show):
         ax = fig.add_subplot(5, n_show, i + 1)
         ax.imshow(_rgb(orig_frames[i]))
@@ -42,7 +49,7 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
             ax.set_ylabel("1] originals", rotation=0, labelpad=55, fontsize=8, va="center")
         ax.axis("off")
 
-    #Ligne 2 : canaux Y, Cb, Cr 
+    # ── Ligne 2 : canaux Y, Cb, Cr ──────────────────────────
     ycbcr0 = bgr_to_ycbcr(orig_frames[0])
     Y0  = ycbcr0[..., 0]
     Cb0 = chroma_up(chroma_down(ycbcr0[..., 1]), Y0.shape)
@@ -60,9 +67,9 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
             ax.set_ylabel("2] Y / Cb / Cr", rotation=0, labelpad=55, fontsize=8, va="center")
         ax.axis("off")
 
-    #Ligne 3 : bloc 8x8 a travers le pipeline DCT
+    # ── Ligne 3 : bloc 8x8 a travers le pipeline DCT ────────
     gray0 = cv2.cvtColor(orig_frames[0], cv2.COLOR_BGR2GRAY).astype(np.float32)
-    #Choisir un bloc representatif (pas le coin en haut a gauche qui est souvent uniforme)
+    # Choisir un bloc representatif (pas le coin en haut a gauche qui est souvent uniforme)
     brow, bcol = 2, 4
     raw_block   = gray0[brow*8:(brow+1)*8, bcol*8:(bcol+1)*8]
     dct_block   = cv2.dct(raw_block - 128.0)
@@ -86,7 +93,7 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04).ax.tick_params(labelsize=5)
         ax.axis("off")
 
-    #Ligne 4 : vecteurs de mouvement + residu
+    # ── Ligne 4 : vecteurs de mouvement + residu ────────────
     p_idx = next((i for i, r in enumerate(records) if r["type"] == "P"), None)
     ax4a = fig.add_subplot(5, n_show, 3*n_show + 1)
     ax4a.set_ylabel("4 & 5] motion + residual", rotation=0, labelpad=55, fontsize=8, va="center")
@@ -108,7 +115,7 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
         ax4a.set_title(f"motion vectors on P-frame {p_idx}", fontsize=8)
         ax4a.axis("off")
 
-        #Carte des residus
+        # Carte des residus
         ax4b = fig.add_subplot(5, n_show, 3*n_show + n_show)
         prev_gray = cv2.cvtColor(orig_frames[p_idx - 1], cv2.COLOR_BGR2GRAY).astype(np.float32)
         curr_gray = cv2.cvtColor(orig_frames[p_idx],     cv2.COLOR_BGR2GRAY).astype(np.float32)
@@ -118,7 +125,7 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
         plt.colorbar(im2, ax=ax4b, fraction=0.046).ax.tick_params(labelsize=5)
         ax4b.axis("off")
 
-    #Ligne 5 : frames reconstruites
+    # ── Ligne 5 : frames reconstruites ──────────────────────
     for i in range(n_show):
         ax = fig.add_subplot(5, n_show, 4*n_show + i + 1)
         ax.imshow(_rgb(recon_frames[i]))
@@ -142,7 +149,7 @@ def make_sweep_figure(frames, out_path):
     """
     orig_bytes = sum(f.nbytes for f in frames)
 
-    # sweep qualité (Q de 10 a 90)
+    # Sweep qualite (Q de 10 a 90)
     q_vals   = [10, 20, 30, 40, 50, 60, 70, 80, 90]
     q_ratios = []
     q_psnrs  = []
@@ -154,7 +161,7 @@ def make_sweep_figure(frames, out_path):
         q_psnrs.append(np.mean([psnr(o, r) for o, r in zip(frames, recon)]))
         print(f"  Q={q:3d}  ratio={q_ratios[-1]:.1f}x  PSNR={q_psnrs[-1]:.1f}dB")
 
-    # sweep GOP (1 a 16)
+    # Sweep GOP (1 a 16)
     gop_vals   = [1, 2, 4, 6, 8, 10, 12, 16]
     gop_ratios = []
     gop_psnrs  = []
@@ -166,21 +173,56 @@ def make_sweep_figure(frames, out_path):
         gop_psnrs.append(np.mean([psnr(o, r) for o, r in zip(frames, recon)]))
         print(f"  GOP={g:2d}  ratio={gop_ratios[-1]:.1f}x  PSNR={gop_psnrs[-1]:.1f}dB")
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+    orig_bytes = sum(f.nbytes for f in frames)
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     fig.suptitle("Experimental sweeps", fontsize=12, fontweight="bold")
 
+    # ── Graphe 1 : ratio vs qualite ──
     axes[0].plot(q_vals, q_ratios, "o-b", linewidth=2, markersize=6)
-    axes[0].set_xlabel("quality", fontsize=10)
-    axes[0].set_ylabel("compression ratio (x)", fontsize=10)
-    axes[0].set_title(f"ratio vs quality (GOP=8)", fontsize=10)
+    axes[0].set_xlabel("Quality factor (Q)", fontsize=10)
+    axes[0].set_ylabel("Compression ratio (x)", fontsize=10)
+    axes[0].set_title("ratio vs quality (GOP=8)", fontsize=10)
     axes[0].grid(True, alpha=0.4)
 
+    # Tailles avant/apres pour Q=50 (milieu de la courbe)
+    q50_idx = q_vals.index(50) if 50 in q_vals else len(q_vals)//2
+    comp_bytes_q50 = int(orig_bytes / q_ratios[q50_idx])
+    axes[0].annotate(
+        f"Q=50\nOriginal: {orig_bytes/1024:.0f} KB\nCompressed: {comp_bytes_q50/1024:.1f} KB\nRatio: {q_ratios[q50_idx]:.0f}x",
+        xy=(50, q_ratios[q50_idx]),
+        xytext=(60, q_ratios[q50_idx] + 30),
+        fontsize=8, color="navy",
+        arrowprops=dict(arrowstyle="->", color="navy", lw=1),
+        bbox=dict(boxstyle="round,pad=0.3", fc="lightyellow", ec="navy", lw=0.8)
+    )
+
+    # ── Graphe 2 : ratio vs GOP ──
     axes[1].plot(gop_vals, gop_ratios, "s-r", linewidth=2, markersize=6)
     axes[1].set_xlabel("GOP size", fontsize=10)
-    axes[1].set_ylabel("compression ratio (x)", fontsize=10)
-    axes[1].set_title(f"ratio vs GOP (Q=50)", fontsize=10)
+    axes[1].set_ylabel("Compression ratio (x)", fontsize=10)
+    axes[1].set_title("ratio vs GOP (Q=50)", fontsize=10)
     axes[1].grid(True, alpha=0.4)
 
-    plt.tight_layout()
+    # Tailles avant/apres pour GOP=8
+    gop8_idx = gop_vals.index(8) if 8 in gop_vals else len(gop_vals)//2
+    comp_bytes_gop8 = int(orig_bytes / gop_ratios[gop8_idx])
+    axes[1].annotate(
+        f"GOP=8\nOriginal: {orig_bytes/1024:.0f} KB\nCompressed: {comp_bytes_gop8/1024:.1f} KB\nRatio: {gop_ratios[gop8_idx]:.0f}x",
+        xy=(8, gop_ratios[gop8_idx]),
+        xytext=(10, gop_ratios[gop8_idx] - 10),
+        fontsize=8, color="darkred",
+        arrowprops=dict(arrowstyle="->", color="darkred", lw=1),
+        bbox=dict(boxstyle="round,pad=0.3", fc="lightyellow", ec="darkred", lw=0.8)
+    )
+
+    # Texte global tailles
+    fig.text(0.5, 0.01,
+             f"Original video size: {orig_bytes/1024:.0f} KB  |  "
+             f"Min compressed (Q=10): {int(orig_bytes/q_ratios[0])/1024:.1f} KB  |  "
+             f"Max compressed (Q=90): {int(orig_bytes/q_ratios[-1])/1024:.1f} KB",
+             ha="center", fontsize=8, color="gray")
+
+    plt.tight_layout(rect=[0, 0.04, 1, 1])
     fig.savefig(out_path, dpi=100, bbox_inches="tight")
     plt.close(fig)

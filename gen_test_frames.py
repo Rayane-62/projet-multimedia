@@ -1,3 +1,7 @@
+"""
+gen_test_frames.py  —  Genere des frames synthetiques pour tester le codec
+Usage : python gen_test_frames.py -o sample_frames -n 12
+"""
 import argparse
 import os
 import cv2
