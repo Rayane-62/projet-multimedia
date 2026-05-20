@@ -1,18 +1,3 @@
-"""
-mpeg_codec.py
-Simplified MPEG-4-like video codec
-BENLALAM Mohamed Rayane  222231363816
-AKKOUCHE Mehdi           222231370206
-
-Pipeline :
-  encode(frames, params) -> bytes
-    BGR -> YCbCr -> 4:2:0 -> I-frames (DCT + quant) / P-frames (motion + residual)
-    -> packed bitstream -> bz2 compressed -> .bin
-
-  decode(blob) -> [frames]
-    inverse of every step above
-"""
-
 import bz2
 import struct
 from collections import namedtuple
