@@ -1,9 +1,3 @@
-"""
-viz.py  —  Visualisation du pipeline + courbes d'analyse
-BENLALAM Mohamed Rayane  222231363816
-AKKOUCHE Mehdi           222231370206
-"""
-
 import cv2
 import numpy as np
 import matplotlib
