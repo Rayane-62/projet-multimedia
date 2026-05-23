@@ -15,12 +15,10 @@ def gen_frames(out_dir, n=12, h=128, w=128):
         # Fond degrade
         for y in range(h):
             frame[y, :] = [int(y * 0.6), int(y * 0.4), 60]
-        # Cercle qui se deplace
+        # Cercle qui se deplace horizontalement
         cx = 20 + (i * (w - 50)) // max(1, n - 1)
         cy = h // 2 + int(20 * np.sin(i * 0.5))
         cv2.circle(frame, (cx, cy), 18, (200, 80, 50), -1)
-        # Rectangle fixe
-        cv2.rectangle(frame, (w//2, h//3), (w//2+30, h//3+30), (50, 180, 200), -1)
         cv2.imwrite(os.path.join(out_dir, f"frame_{i:04d}.png"), frame)
     print(f"{n} frames generees dans '{out_dir}' ({w}x{h})")
 

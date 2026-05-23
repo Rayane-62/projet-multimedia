@@ -64,7 +64,10 @@ def cmd_decode(args):
     out_shape = ref_frames[0].shape[:2] if ref_frames else None
     print("  Decodage en cours...")
     recon_frames, params, records = decode(blob, out_shape)
-    n_i, n_p = frame_breakdown(records)
+    # Calculer le nombre de I-frames et P-frames depuis les parametres GOP
+    total = len(recon_frames)
+    n_i   = (total + params.gop - 1) // params.gop
+    n_p   = total - n_i
     print(f"  I-frames : {n_i}   P-frames : {n_p}")
     if ref_frames:
         psnrs = [psnr(o, r) for o, r in zip(ref_frames, recon_frames)]

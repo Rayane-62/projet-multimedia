@@ -14,8 +14,7 @@ import matplotlib.patches as mpatches
 
 from mpeg_codec import (encode, decode, psnr, frame_breakdown,
                         bgr_to_ycbcr, chroma_down, chroma_up,
-                        make_qtables, _pad_to, dct_quant_plane,
-                        idct_dequant_plane, Params, DEFAULT_PARAMS)
+                        make_qtables, _pad_to, Params, DEFAULT_PARAMS)
 
 
 def _rgb(bgr):
@@ -31,7 +30,6 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
       4. Vecteurs de mouvement sur une P-frame + carte des residus
       5. Frames reconstruites
     """
-    q_y, q_c = make_qtables(params.quality)
 
     fig = plt.figure(figsize=(18, 20), facecolor="white")
     fig.suptitle("MPEG-4-like pipeline — stage visualisation",
@@ -69,13 +67,13 @@ def make_pipeline_figure(orig_frames, recon_frames, records, params, out_path):
 
     # ── Ligne 3 : bloc 8x8 a travers le pipeline DCT ────────
     gray0 = cv2.cvtColor(orig_frames[0], cv2.COLOR_BGR2GRAY).astype(np.float32)
-    # Choisir un bloc representatif (pas le coin en haut a gauche qui est souvent uniforme)
     brow, bcol = 2, 4
     raw_block   = gray0[brow*8:(brow+1)*8, bcol*8:(bcol+1)*8]
+    q_y_vis, _  = make_qtables(params.quality)
     dct_block   = cv2.dct(raw_block - 128.0)
-    quant_block = np.round(dct_block / q_y).astype(np.float32)
-    recon_block = cv2.idct(quant_block * q_y) + 128.0
-    q_table_vis = make_qtables(params.quality)[0]
+    quant_block = np.round(dct_block / q_y_vis).astype(np.float32)
+    recon_block = cv2.idct(quant_block * q_y_vis) + 128.0
+    q_table_vis = q_y_vis
 
     dct_stages = [
         (raw_block,         "raw pixels",         "viridis"),
